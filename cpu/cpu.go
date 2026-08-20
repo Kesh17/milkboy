@@ -1,8 +1,16 @@
 package cpu
 
 type CPU struct {
-	register Register
+	Register Register
 
-	pc uint16
-	sp uint16
+	PC uint16
+	SP uint16
+
+	OpcodeTable [256]Instruction
+}
+
+func New() *CPU {
+	c := &CPU{PC: 0x100}
+	c.populateTable()
+	return c
 }
