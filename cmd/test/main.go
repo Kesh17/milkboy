@@ -6,7 +6,6 @@ import (
 	"milkboy/cartidge"
 	"milkboy/cpu"
 	"milkboy/gameboy"
-	"time"
 )
 
 // only for texting purpose
@@ -18,13 +17,13 @@ func main() {
 		slog.Error("cartidge load error", "error: ", err)
 	}
 	bus := bus.New(c)
-	cpu := cpu.New()
+	cpu := cpu.New(bus)
 
 	gb := gameboy.New(cpu, bus)
 
 	for {
 		gb.Cycle()
-		time.Sleep(time.Millisecond)
+		// time.Sleep(time.Millisecond)
 	}
 
 }

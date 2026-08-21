@@ -23,18 +23,14 @@ func (gb *GameBoy) Fetch() byte {
 
 func (gb *GameBoy) DecodeExecute(opcode byte) {
 	if gb.CPU.OpcodeTable[opcode] == nil {
+		slog.Warn("Not implemented yet", "opcode", fmt.Sprintf("%02X", opcode))
 		return
 	}
-	gb.CPU.OpcodeTable[opcode]()
+	gb.CPU.OpcodeTable[opcode](opcode)
 
 }
 
 func (gb *GameBoy) Cycle() {
-	opcode := gb.Fetch()
-	slog.Debug("Fetch",
-		"PC", fmt.Sprintf("%#X", gb.CPU.PC),
-		"opcode", fmt.Sprintf("%#X", opcode),
-	)
-	gb.CPU.PC++
+	opcode := gb.CPU.Fetch()
 	gb.DecodeExecute(opcode)
 }
