@@ -38,11 +38,10 @@ func (c *CPU) Fetch() uint8 {
 	return opcode
 }
 
-func (c *CPU) DecodeExecute(opcode byte) {
+func (c *CPU) DecodeExecute(opcode byte) uint64 {
 	if c.opcodeTable[opcode] == nil {
 		slog.Warn("Not implemented yet", "opcode", fmt.Sprintf("%02X", opcode))
-		return
+		return 0
 	}
-	c.opcodeTable[opcode](opcode)
-
+	return c.opcodeTable[opcode](opcode)
 }

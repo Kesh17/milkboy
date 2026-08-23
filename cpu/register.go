@@ -95,7 +95,7 @@ func (c *CPU) GetR8(r8 R8) uint8 {
 	return data
 }
 
-type R16 uint16
+type R16 uint8
 
 const (
 	R16BC R16 = iota
@@ -150,24 +150,24 @@ func (c *CPU) GetR16(r16 R16) uint16 {
 	return data
 }
 
-type R16Mem uint16
+type R16Mem uint8
 
 const (
-	R16M_BC R16Mem = iota
-	R16M_DE
-	R16M_HLI
-	R16M_HLD
+	R16MemBC R16Mem = iota
+	R16MemDE
+	R16MemHLI
+	R16MemHLD
 )
 
 func (r R16Mem) String() string {
 	switch r {
-	case R16M_BC:
+	case R16MemBC:
 		return "BC"
-	case R16M_DE:
+	case R16MemDE:
 		return "DE"
-	case R16M_HLI:
+	case R16MemHLI:
 		return "HL+"
-	case R16M_HLD:
+	case R16MemHLD:
 		return "HL-"
 	default:
 		return "UNKNOWN"
@@ -176,42 +176,42 @@ func (r R16Mem) String() string {
 
 func (c *CPU) SetR16Mem(r16m R16Mem, data uint8) {
 	switch r16m {
-	case R16M_BC:
-		c.bus.Write(uint16(r16m), data)
-	case R16M_DE:
-		c.bus.Write(uint16(r16m), data)
-	case R16M_HLI:
+	case R16MemBC:
+		c.bus.Write(c.register.BC(), data)
+	case R16MemDE:
+		c.bus.Write(c.register.DE(), data)
+	case R16MemHLI:
 		c.bus.Write(c.register.HL(), data)
 		hl := c.register.HL()
 		hl++
 		c.register.H = uint8(hl >> 8)
-		c.register.H = uint8(hl)
-	case R16M_HLD:
+		c.register.L = uint8(hl)
+	case R16MemHLD:
 		c.bus.Write(c.register.HL(), data)
 		hl := c.register.HL()
 		hl--
 		c.register.H = uint8(hl >> 8)
-		c.register.H = uint8(hl)
+		c.register.L = uint8(hl)
 	}
 }
 
 func (c *CPU) GetR16Mem(r16 R16Mem) byte {
 	var data byte
 	switch r16 {
-	case R16M_BC:
+	case R16MemBC:
 		data = c.bus.Read(c.register.BC())
-	case R16M_DE:
+	case R16MemDE:
 		data = c.bus.Read(c.register.DE())
-	case R16M_HLI:
-		data = c.bus.Read(c.register.HL())
-		hl := c.register.HL()
-		hl--
-		c.register.H = uint8(hl >> 8)
-		c.register.H = uint8(hl)
-	case R16M_HLD:
+	case R16MemHLI:
 		data = c.bus.Read(c.register.HL())
 		hl := c.register.HL()
 		hl++
+		c.register.H = uint8(hl >> 8)
+		c.register.H = uint8(hl)
+	case R16MemHLD:
+		data = c.bus.Read(c.register.HL())
+		hl := c.register.HL()
+		hl--
 		c.register.H = uint8(hl >> 8)
 		c.register.H = uint8(hl)
 	}
