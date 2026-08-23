@@ -57,21 +57,33 @@ func setXORAR8(c *CPU) {
 	}
 }
 
-func setBITU8R(c *CPU) {
-	for i := 0x40; i <= 0x7F; i++ {
-		c.opcodeTable[i] = c.bitU3R8
+func setCALLCCN16(c *CPU) {
+	for i := 0xC4; i <= 0xDC; i += 0x08 {
+		c.opcodeTable[i] = c.callCCN16
 	}
 }
 
-func setRESU8R(c *CPU) {
-	for i := 0x80; i <= 0xBF; i++ {
-		c.opcodeTable[i] = c.resU3R8
+func setJPCCN16(c *CPU) {
+	for i := 0xC2; i <= 0xDA; i += 0x08 {
+		c.opcodeTable[i] = c.jpCCN16
 	}
 }
 
-func setSETAR8(c *CPU) {
-	for i := 0xC0; i <= 0xFF; i++ {
-		c.opcodeTable[i] = c.setU3R8
+func setJRCCN8(c *CPU) {
+	for i := 0x20; i <= 0x38; i += 0x08 {
+		c.opcodeTable[i] = c.jrCCN8
+	}
+}
+
+func setRST(c *CPU) {
+	for i := 0xC7; i <= 0xFF; i += 0x08 {
+		c.opcodeTable[i] = c.rst
+	}
+}
+
+func setRETCC(c *CPU) {
+	for i := 0xC0; i <= 0xD8; i += 0x08 {
+		c.opcodeTable[i] = c.retCC
 	}
 }
 
@@ -137,17 +149,40 @@ func (c *CPU) populateTable() {
 	setXORAR8(c)
 
 	// XOR A,n8
-	c.opcodeTable[0xF6] = c.xorAN8
+	c.opcodeTable[0xEE] = c.xorAN8
 
-	//BIT A, r8
-	setBITU8R(c)
+	//CALL n16
+	c.opcodeTable[0xCD] = c.callN16
 
-	//RES A, r8
-	setRESU8R(c)
+	//CALL CC n16
+	setCALLCCN16(c)
 
-	//SET A, r8
-	setSETAR8(c)
+	//JP HL
+	c.opcodeTable[0xE9] = c.jpHL
 
+	//JP n16
+	c.opcodeTable[0xC3] = c.jpN16
+
+	//JP CC n16
+	setJPCCN16(c)
+
+	//JR n8
+	c.opcodeTable[0x18] = c.jrN8
+
+	//JR CC n8
+	setJRCCN8(c)
+
+	//RET CC
+	setRETCC(c)
+
+	//RET
+	c.opcodeTable[0xC9] = c.ret
+
+	//RETI
+	c.opcodeTable[0xD9] = c.reti
+
+	//RST
+	setRST(c)
 }
 
 func (c *CPU) NOP(opcode uint8) uint64 {
@@ -206,9 +241,7 @@ func (c *CPU) ldR16memA(opcode uint8) uint64 {
 }
 
 func (c *CPU) ldN16A(opcode uint8) uint64 {
-	lo := c.Fetch()
-	hi := c.Fetch()
-	n16 := uint16(hi)<<8 | uint16(lo)
+	n16 := c.Fetch16()
 
 	c.bus.Write(n16, c.register.A)
 
@@ -217,9 +250,8 @@ func (c *CPU) ldN16A(opcode uint8) uint64 {
 }
 
 func (c *CPU) ldhN16A(opcode uint8) uint64 {
-	lo := uint16(c.Fetch())
-	hi := uint16(0xFF00)
-	n16 := hi | lo
+	lo := c.Fetch()
+	n16 := 0xFF00 | uint16(lo)
 
 	c.bus.Write(n16, c.register.A)
 
@@ -247,9 +279,7 @@ func (c *CPU) ldAR16mem(opcode uint8) uint64 {
 }
 
 func (c *CPU) ldAN16(opcode uint8) uint64 {
-	lo := c.Fetch()
-	hi := c.Fetch()
-	n16 := uint16(hi)<<8 | uint16(lo)
+	n16 := c.Fetch16()
 
 	c.register.A = c.bus.Read(n16)
 
@@ -277,9 +307,7 @@ func (c *CPU) ldhAC(opcode uint8) uint64 {
 }
 
 func (c *CPU) ldN16SP(opcode uint8) uint64 {
-	lo := c.Fetch()
-	hi := c.Fetch()
-	n16 := uint16(hi)<<8 | uint16(lo)
+	n16 := c.Fetch16()
 
 	low := c.sp & 0xFF
 	high := c.sp >> 8
@@ -350,13 +378,22 @@ func (c *CPU) andAN8(opcode uint8) uint64 {
 	n8 := c.Fetch()
 	c.register.A &= n8
 
+	if c.register.A == 0 {
+		c.register.F.SetFlag(Z)
+	} else {
+		c.register.F.ClearFlag(Z)
+	}
+	c.register.F.ClearFlag(N)
+	c.register.F.SetFlag(H)
+	c.register.F.ClearFlag(C)
+
 	slog.Debug("Decode AND A,n8", "n8", n8)
 	cycles := uint64(2)
 	return cycles
 }
 
 func (c *CPU) cpl(opcode uint8) uint64 {
-	c.register.A ^= c.register.A
+	c.register.A = ^c.register.A
 
 	c.register.F.SetFlag(N)
 	c.register.F.SetFlag(H)
@@ -396,8 +433,19 @@ func (c *CPU) orAN8(opcode uint8) uint64 {
 	n8 := c.Fetch()
 	c.register.A |= n8
 
-	slog.Debug("Decode OR A,n8", "n8", n8)
+	if c.register.A == 0 {
+		c.register.F.SetFlag(Z)
+	} else {
+		c.register.F.ClearFlag(Z)
+	}
+	c.register.F.ClearFlag(N)
+	c.register.F.ClearFlag(H)
+	c.register.F.ClearFlag(C)
+
 	cycles := uint64(2)
+
+	slog.Debug("Decode OR A,n8", "n8", n8)
+
 	return cycles
 }
 
@@ -430,66 +478,161 @@ func (c *CPU) xorAN8(opcode uint8) uint64 {
 	n8 := c.Fetch()
 	c.register.A ^= n8
 
-	slog.Debug("Decode XOR A,n8", "n8", n8)
-	cycles := uint64(2)
-	return cycles
-}
-
-func (c *CPU) bitU3R8(opcode uint8) uint64 {
-	b3 := (opcode >> 3) & 0x7
-	r8 := R8(opcode & 0x7)
-	value := c.GetR8(r8)
-
-	if value&(1<<b3) == 0 {
+	if c.register.A == 0 {
 		c.register.F.SetFlag(Z)
 	} else {
 		c.register.F.ClearFlag(Z)
 	}
+
 	c.register.F.ClearFlag(N)
-	c.register.F.SetFlag(H)
+	c.register.F.ClearFlag(H)
+	c.register.F.ClearFlag(C)
 
-	slog.Debug("Decode BIT U3,r8", "b3", b3, "r8", r8)
+	slog.Debug("Decode XOR A,n8", "n8", n8)
+	cycles := uint64(2)
+	return cycles
+}
+func (c *CPU) callN16(opcode uint8) uint64 {
+	n16 := c.Fetch16()
+	c.push(c.pc)
+	c.pc = n16
 
+	slog.Debug("Decode CALL n16", "n16", n16)
+
+	cycles := uint64(6)
+	return cycles
+}
+
+func (c *CPU) callCCN16(opcode uint8) uint64 {
 	var cycles uint64
-	if r8 == R8HL {
+	cc := FlagBit((opcode >> 3) & 0x3)
+	n16 := c.Fetch16()
+
+	slog.Debug("Decode CALL cc n16", "cc", cc, "n16", n16)
+
+	if !c.register.F.ConditionCode(cc) {
 		cycles = 3
-	} else {
-		cycles = 2
+		return cycles
 	}
+
+	c.push(c.pc)
+	c.pc = n16
+
+	cycles = 6
 	return cycles
 }
 
-func (c *CPU) resU3R8(opcode uint8) uint64 {
-	b3 := (opcode >> 3) & 0x7
-	mask := uint8(1) << b3
-	r8 := R8(opcode & 0x7)
-	value := c.GetR8(r8)
-	c.SetR8(r8, value&^mask)
+func (c *CPU) jpHL(opcode uint8) uint64 {
+	hl := c.register.HL()
+	c.pc = hl
 
-	slog.Debug("Decode RES U3,r8", "b3", b3, "r8", r8)
+	slog.Debug("Decode JP HL", "hl", hl)
 
-	var cycles uint64
-	if r8 == R8HL {
-		cycles = 4
-	} else {
-		cycles = 2
-	}
+	cycles := uint64(1)
 	return cycles
 }
-func (c *CPU) setU3R8(opcode uint8) uint64 {
-	b3 := (opcode >> 3) & 0x7
-	mask := uint8(1) << b3
-	r8 := R8(opcode & 0x7)
-	value := c.GetR8(r8)
-	c.SetR8(r8, value|mask)
 
-	slog.Debug("Decode SET U3,r8", "b3", b3, "r8", r8)
+func (c *CPU) jpN16(opcode uint8) uint64 {
+	n16 := c.Fetch16()
+	c.pc = n16
 
+	slog.Debug("Decode JP n16", "n16", n16)
+
+	cycles := uint64(4)
+	return cycles
+}
+
+func (c *CPU) jpCCN16(opcode uint8) uint64 {
 	var cycles uint64
-	if r8 == R8HL {
-		cycles = 4
-	} else {
-		cycles = 2
+	cc := FlagBit((opcode >> 3) & 0x3)
+	n16 := c.Fetch16()
+
+	if !c.register.F.ConditionCode(cc) {
+		cycles = 3
+		return cycles
 	}
+
+	c.pc = n16
+
+	slog.Debug("Decode JP cc n16", "cc", cc, "n16", n16)
+
+	cycles = 4
+	return cycles
+}
+
+func (c *CPU) jrN8(opcode uint8) uint64 {
+	n8 := int8(c.Fetch())
+	addr := int32(c.pc) + int32(n8)
+	c.pc = uint16(addr)
+
+	slog.Debug("Decode JR n8", "n8", n8)
+
+	cycles := uint64(3)
+	return cycles
+}
+
+func (c *CPU) jrCCN8(opcode uint8) uint64 {
+	cc := FlagBit((opcode >> 3) & 0x3)
+	n8 := int8(c.Fetch())
+	var cycles uint64
+
+	if !c.register.F.ConditionCode(cc) {
+		cycles = 2
+		return cycles
+	}
+
+	addr := uint16(int32(c.pc) + int32(n8))
+	c.pc = addr
+
+	slog.Debug("Decode JR cc n8", "cc", cc, "n8", n8)
+
+	cycles = 3
+	return cycles
+}
+
+func (c *CPU) retCC(opcode uint8) uint64 {
+	var cycles uint64
+	cc := FlagBit((opcode >> 3) & 0x3)
+
+	if !c.register.F.ConditionCode(cc) {
+		cycles = 2
+		return cycles
+	}
+
+	c.pc = c.pop()
+
+	slog.Debug("Decode RET cc", "cc", cc)
+
+	cycles = 5
+	return cycles
+}
+
+func (c *CPU) ret(opcode uint8) uint64 {
+	c.pc = c.pop()
+
+	slog.Debug("Decode RET")
+
+	cycles := uint64(4)
+	return cycles
+}
+
+func (c *CPU) reti(opcode uint8) uint64 {
+	c.pc = c.pop()
+	c.ime = true
+
+	slog.Debug("Decode RETI", "ime", c.ime)
+
+	cycles := uint64(4)
+	return cycles
+}
+
+func (c *CPU) rst(opcode uint8) uint64 {
+	vec := ((opcode >> 3) & 0x7) * 8
+	c.push(c.pc)
+	c.pc = uint16(vec)
+
+	slog.Debug("Decode RST", "vec", vec)
+
+	cycles := uint64(4)
 	return cycles
 }

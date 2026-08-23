@@ -1,5 +1,7 @@
 package cpu
 
+import "log/slog"
+
 type FlagRegister uint8
 
 type FlagBit uint8
@@ -10,6 +12,33 @@ const (
 	H FlagBit = 0x20
 	C FlagBit = 0x10
 )
+
+const (
+	FBNZ FlagBit = iota
+	FBZ
+	FBNC
+	FBC
+)
+
+func (f *FlagRegister) ConditionCode(fb FlagBit) bool {
+	res := false
+
+	switch fb {
+	case FBNZ:
+		return !f.isSet(Z)
+	case FBZ:
+		return f.isSet(Z)
+	case FBNC:
+		return !f.isSet(C)
+	case FBC:
+		return f.isSet(C)
+
+	default:
+		slog.Warn("unknown flag bit")
+	}
+
+	return res
+}
 
 func (f *FlagRegister) isSet(fb FlagBit) bool {
 	return *f&FlagRegister(fb) != 0
