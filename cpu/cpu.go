@@ -15,8 +15,8 @@ type CPU struct {
 
 	ime bool
 
-	opcodeTable   [256]Instruction
-	cbOPcodeTable [256]Instruction
+	instructionTable   [256]Instruction
+	cbInstructionTable [256]Instruction
 }
 
 func New(bus bus.Addresable) *CPU {
@@ -55,11 +55,11 @@ func (c *CPU) Fetch16() uint16 {
 }
 
 func (c *CPU) DecodeExecute(opcode byte) uint64 {
-	if c.opcodeTable[opcode] == nil {
+	if c.instructionTable[opcode] == nil {
 		slog.Warn("Not implemented yet", "opcode", fmt.Sprintf("%02X", opcode))
 		return 0
 	}
-	return c.opcodeTable[opcode](opcode)
+	return c.instructionTable[opcode](opcode)
 }
 
 func (c *CPU) push(value uint16) {

@@ -11,85 +11,85 @@ func setLDR8R8(c *CPU) {
 			//todo: halt
 			continue
 		}
-		c.opcodeTable[i] = c.ldR8R8
+		c.instructionTable[i] = c.ldR8R8
 	}
 }
 
 func setLDR8N8(c *CPU) {
 	for i := 0x06; i <= 0x3E; i += 0x08 {
-		c.opcodeTable[i] = c.ldR8N8
+		c.instructionTable[i] = c.ldR8N8
 	}
 }
 
 func setLDR16N16(c *CPU) {
 	for i := 0x01; i <= 0x31; i += 0x10 {
-		c.opcodeTable[i] = c.ldR16N16
+		c.instructionTable[i] = c.ldR16N16
 	}
 }
 
 func setLDR16memA(c *CPU) {
 	for i := 0x02; i <= 0x32; i += 0x10 {
-		c.opcodeTable[i] = c.ldR16memA
+		c.instructionTable[i] = c.ldR16memA
 	}
 }
 
 func setLDAR16mem(c *CPU) {
 	for i := 0x0A; i <= 0x3A; i += 0x10 {
-		c.opcodeTable[i] = c.ldAR16mem
+		c.instructionTable[i] = c.ldAR16mem
 	}
 }
 
 func setANDAR8(c *CPU) {
 	for i := 0xA0; i <= 0xA7; i++ {
-		c.opcodeTable[i] = c.andAR8
+		c.instructionTable[i] = c.andAR8
 	}
 }
 
 func setORAR8(c *CPU) {
 	for i := 0xB0; i <= 0xB7; i++ {
-		c.opcodeTable[i] = c.orAR8
+		c.instructionTable[i] = c.orAR8
 	}
 }
 
 func setXORAR8(c *CPU) {
 	for i := 0xA8; i <= 0xAF; i++ {
-		c.opcodeTable[i] = c.xorAR8
+		c.instructionTable[i] = c.xorAR8
 	}
 }
 
 func setCALLCCN16(c *CPU) {
 	for i := 0xC4; i <= 0xDC; i += 0x08 {
-		c.opcodeTable[i] = c.callCCN16
+		c.instructionTable[i] = c.callCCN16
 	}
 }
 
 func setJPCCN16(c *CPU) {
 	for i := 0xC2; i <= 0xDA; i += 0x08 {
-		c.opcodeTable[i] = c.jpCCN16
+		c.instructionTable[i] = c.jpCCN16
 	}
 }
 
 func setJRCCN8(c *CPU) {
 	for i := 0x20; i <= 0x38; i += 0x08 {
-		c.opcodeTable[i] = c.jrCCN8
+		c.instructionTable[i] = c.jrCCN8
 	}
 }
 
 func setRST(c *CPU) {
 	for i := 0xC7; i <= 0xFF; i += 0x08 {
-		c.opcodeTable[i] = c.rst
+		c.instructionTable[i] = c.rst
 	}
 }
 
 func setRETCC(c *CPU) {
 	for i := 0xC0; i <= 0xD8; i += 0x08 {
-		c.opcodeTable[i] = c.retCC
+		c.instructionTable[i] = c.retCC
 	}
 }
 
 func (c *CPU) populateTable() {
 	//nop
-	c.opcodeTable[0x0] = c.NOP
+	c.instructionTable[0x0] = c.NOP
 
 	//ld r8 r8
 	setLDR8R8(c)
@@ -104,70 +104,70 @@ func (c *CPU) populateTable() {
 	setLDR16memA(c)
 
 	//ld [n16] a
-	c.opcodeTable[0xEA] = c.ldN16A
+	c.instructionTable[0xEA] = c.ldN16A
 
 	//ldh [n16] a
-	c.opcodeTable[0xE0] = c.ldhN16A
+	c.instructionTable[0xE0] = c.ldhN16A
 
 	//ldh [c] a
-	c.opcodeTable[0xE2] = c.ldhCA
+	c.instructionTable[0xE2] = c.ldhCA
 
 	//ld a r16mem
 	setLDAR16mem(c)
 
 	//ld a [n16]
-	c.opcodeTable[0xFA] = c.ldAN16
+	c.instructionTable[0xFA] = c.ldAN16
 
 	// ldh a [n16]
-	c.opcodeTable[0xF0] = c.ldhAN16
+	c.instructionTable[0xF0] = c.ldhAN16
 
 	//ldh a c
-	c.opcodeTable[0xF2] = c.ldhAC
+	c.instructionTable[0xF2] = c.ldhAC
 
 	//ldh [n16] sp
-	c.opcodeTable[0x08] = c.ldN16SP
+	c.instructionTable[0x08] = c.ldN16SP
 
 	//ld hl sp+e8
-	c.opcodeTable[0xF8] = c.ldHLSPe8
+	c.instructionTable[0xF8] = c.ldHLSPe8
 
 	//ld sp hl
-	c.opcodeTable[0xF9] = c.ldSPHL
+	c.instructionTable[0xF9] = c.ldSPHL
 
 	//AND A,r8
 	setANDAR8(c)
 
 	//AND A,n8
-	c.opcodeTable[0xE6] = c.andAN8
+	c.instructionTable[0xE6] = c.andAN8
 
 	//OR A,r8
 	setORAR8(c)
 
 	// OR A,n8
-	c.opcodeTable[0xF6] = c.orAN8
+	c.instructionTable[0xF6] = c.orAN8
 
 	//XOR A,r8
 	setXORAR8(c)
 
 	// XOR A,n8
-	c.opcodeTable[0xEE] = c.xorAN8
+	c.instructionTable[0xEE] = c.xorAN8
 
 	//CALL n16
-	c.opcodeTable[0xCD] = c.callN16
+	c.instructionTable[0xCD] = c.callN16
 
 	//CALL CC n16
 	setCALLCCN16(c)
 
 	//JP HL
-	c.opcodeTable[0xE9] = c.jpHL
+	c.instructionTable[0xE9] = c.jpHL
 
 	//JP n16
-	c.opcodeTable[0xC3] = c.jpN16
+	c.instructionTable[0xC3] = c.jpN16
 
 	//JP CC n16
 	setJPCCN16(c)
 
 	//JR n8
-	c.opcodeTable[0x18] = c.jrN8
+	c.instructionTable[0x18] = c.jrN8
 
 	//JR CC n8
 	setJRCCN8(c)
@@ -176,10 +176,10 @@ func (c *CPU) populateTable() {
 	setRETCC(c)
 
 	//RET
-	c.opcodeTable[0xC9] = c.ret
+	c.instructionTable[0xC9] = c.ret
 
 	//RETI
-	c.opcodeTable[0xD9] = c.reti
+	c.instructionTable[0xD9] = c.reti
 
 	//RST
 	setRST(c)
@@ -187,6 +187,8 @@ func (c *CPU) populateTable() {
 
 func (c *CPU) NOP(opcode uint8) uint64 {
 	cycles := uint64(1)
+
+	slog.Debug("Decode NOP", "opcode", opcode)
 	return cycles
 }
 
@@ -201,6 +203,9 @@ func (c *CPU) ldR8R8(opcode uint8) uint64 {
 	} else {
 		cycles = 1
 	}
+
+	slog.Debug("Decode LD r8,r8", "r8", src, "r8", dest)
+
 	return cycles
 }
 
@@ -216,6 +221,8 @@ func (c *CPU) ldR8N8(opcode uint8) uint64 {
 	} else {
 		cycles = 2
 	}
+
+	slog.Debug("Decode LD r8,n8", "r8", r8, "n8", n8)
 	return cycles
 }
 
@@ -229,14 +236,18 @@ func (c *CPU) ldR16N16(opcode uint8) uint64 {
 	c.SetR16(r16, n16)
 
 	cycles := uint64(3)
+
+	slog.Debug("Decode LD r16,n16", "r16", r16, "n16", n16)
 	return cycles
 }
 
 func (c *CPU) ldR16memA(opcode uint8) uint64 {
-	r16 := R16Mem((opcode & 0b00110000) >> 4)
-	c.SetR16Mem(r16, c.register.A)
+	r16mem := R16Mem((opcode & 0b00110000) >> 4)
+	c.SetR16Mem(r16mem, c.register.A)
 
 	cycles := uint64(2)
+
+	slog.Debug("Decode LD r16mem, A", "r16mem", r16mem)
 	return cycles
 }
 
@@ -246,6 +257,8 @@ func (c *CPU) ldN16A(opcode uint8) uint64 {
 	c.bus.Write(n16, c.register.A)
 
 	cycles := uint64(4)
+
+	slog.Debug("Decode LD n16, A", "n16", n16)
 	return cycles
 }
 
@@ -256,6 +269,8 @@ func (c *CPU) ldhN16A(opcode uint8) uint64 {
 	c.bus.Write(n16, c.register.A)
 
 	cycles := uint64(3)
+
+	slog.Debug("Decode LD n16, A", "n16", n16)
 	return cycles
 }
 
@@ -265,16 +280,20 @@ func (c *CPU) ldhCA(opcode uint8) uint64 {
 	c.bus.Write(addr, c.register.A)
 
 	cycles := uint64(2)
+
+	slog.Debug("Decode LD [C], A", "[c]", c.register.C)
 	return cycles
 }
 
 func (c *CPU) ldAR16mem(opcode uint8) uint64 {
-	r16 := R16Mem((opcode & 0b00110000) >> 4)
-	data := c.GetR16Mem(r16)
+	r16mem := R16Mem((opcode & 0b00110000) >> 4)
+	data := c.GetR16Mem(r16mem)
 
 	c.register.A = data
 
 	cycles := uint64(2)
+
+	slog.Debug("Decode LD A, r16mem", "r16mem", r16mem)
 	return cycles
 }
 
@@ -284,6 +303,8 @@ func (c *CPU) ldAN16(opcode uint8) uint64 {
 	c.register.A = c.bus.Read(n16)
 
 	cycles := uint64(4)
+
+	slog.Debug("Decode LD A,n16", "n16", n16)
 	return cycles
 }
 
@@ -294,6 +315,8 @@ func (c *CPU) ldhAN16(opcode uint8) uint64 {
 	c.register.A = c.bus.Read(n16)
 
 	cycles := uint64(3)
+
+	slog.Debug("Decode LDH A,n16", "n16", n16)
 	return cycles
 }
 
@@ -303,6 +326,8 @@ func (c *CPU) ldhAC(opcode uint8) uint64 {
 	c.register.A = c.bus.Read(addr)
 
 	cycles := uint64(2)
+
+	slog.Debug("Decode LDH A, C", "addr", addr)
 	return cycles
 }
 
@@ -315,6 +340,8 @@ func (c *CPU) ldN16SP(opcode uint8) uint64 {
 	c.bus.Write(n16+1, byte(high))
 
 	cycles := uint64(5)
+
+	slog.Debug("Decode LD n16, SP", "n16", n16)
 	return cycles
 }
 
@@ -339,6 +366,8 @@ func (c *CPU) ldHLSPe8(opcode uint8) uint64 {
 	}
 
 	cycles := uint64(3)
+
+	slog.Debug("Decode LD HL, SPe8", "spe8", result)
 	return cycles
 }
 
@@ -346,6 +375,8 @@ func (c *CPU) ldSPHL(opcode uint8) uint64 {
 	c.sp = c.register.HL()
 
 	cycles := uint64(2)
+
+	slog.Debug("Decode LD SP, HL", "hl", c.register.HL())
 	return cycles
 }
 
@@ -370,6 +401,7 @@ func (c *CPU) andAR8(opcode uint8) uint64 {
 	} else {
 		cycles = 1
 	}
+
 	slog.Debug("Decode AND A,r8", "r8", r8)
 	return cycles
 }
@@ -387,8 +419,9 @@ func (c *CPU) andAN8(opcode uint8) uint64 {
 	c.register.F.SetFlag(H)
 	c.register.F.ClearFlag(C)
 
-	slog.Debug("Decode AND A,n8", "n8", n8)
 	cycles := uint64(2)
+
+	slog.Debug("Decode AND A,n8", "n8", n8)
 	return cycles
 }
 
@@ -398,9 +431,9 @@ func (c *CPU) cpl(opcode uint8) uint64 {
 	c.register.F.SetFlag(N)
 	c.register.F.SetFlag(H)
 
-	slog.Debug("Decode CPL")
-
 	cycles := uint64(1)
+
+	slog.Debug("Decode CPL")
 	return cycles
 }
 
@@ -425,6 +458,7 @@ func (c *CPU) orAR8(opcode uint8) uint64 {
 	} else {
 		cycles = 1
 	}
+
 	slog.Debug("Decode OR A,r8", "r8", r8)
 	return cycles
 }
@@ -445,7 +479,6 @@ func (c *CPU) orAN8(opcode uint8) uint64 {
 	cycles := uint64(2)
 
 	slog.Debug("Decode OR A,n8", "n8", n8)
-
 	return cycles
 }
 
@@ -470,6 +503,7 @@ func (c *CPU) xorAR8(opcode uint8) uint64 {
 	} else {
 		cycles = 1
 	}
+
 	slog.Debug("Decode XOR A,r8", "r8", r8)
 	return cycles
 }
@@ -488,8 +522,9 @@ func (c *CPU) xorAN8(opcode uint8) uint64 {
 	c.register.F.ClearFlag(H)
 	c.register.F.ClearFlag(C)
 
-	slog.Debug("Decode XOR A,n8", "n8", n8)
 	cycles := uint64(2)
+
+	slog.Debug("Decode XOR A,n8", "n8", n8)
 	return cycles
 }
 func (c *CPU) callN16(opcode uint8) uint64 {
@@ -497,9 +532,9 @@ func (c *CPU) callN16(opcode uint8) uint64 {
 	c.push(c.pc)
 	c.pc = n16
 
-	slog.Debug("Decode CALL n16", "n16", n16)
-
 	cycles := uint64(6)
+
+	slog.Debug("Decode CALL n16", "n16", n16)
 	return cycles
 }
 
@@ -507,8 +542,6 @@ func (c *CPU) callCCN16(opcode uint8) uint64 {
 	var cycles uint64
 	cc := FlagBit((opcode >> 3) & 0x3)
 	n16 := c.Fetch16()
-
-	slog.Debug("Decode CALL cc n16", "cc", cc, "n16", n16)
 
 	if !c.register.F.ConditionCode(cc) {
 		cycles = 3
@@ -519,6 +552,8 @@ func (c *CPU) callCCN16(opcode uint8) uint64 {
 	c.pc = n16
 
 	cycles = 6
+
+	slog.Debug("Decode CALL cc n16", "cc", cc, "n16", n16)
 	return cycles
 }
 
@@ -526,9 +561,9 @@ func (c *CPU) jpHL(opcode uint8) uint64 {
 	hl := c.register.HL()
 	c.pc = hl
 
-	slog.Debug("Decode JP HL", "hl", hl)
-
 	cycles := uint64(1)
+
+	slog.Debug("Decode JP HL", "hl", hl)
 	return cycles
 }
 
@@ -536,9 +571,9 @@ func (c *CPU) jpN16(opcode uint8) uint64 {
 	n16 := c.Fetch16()
 	c.pc = n16
 
-	slog.Debug("Decode JP n16", "n16", n16)
-
 	cycles := uint64(4)
+
+	slog.Debug("Decode JP n16", "n16", n16)
 	return cycles
 }
 
@@ -554,9 +589,9 @@ func (c *CPU) jpCCN16(opcode uint8) uint64 {
 
 	c.pc = n16
 
-	slog.Debug("Decode JP cc n16", "cc", cc, "n16", n16)
-
 	cycles = 4
+
+	slog.Debug("Decode JP cc n16", "cc", cc, "n16", n16)
 	return cycles
 }
 
@@ -565,9 +600,9 @@ func (c *CPU) jrN8(opcode uint8) uint64 {
 	addr := int32(c.pc) + int32(n8)
 	c.pc = uint16(addr)
 
-	slog.Debug("Decode JR n8", "n8", n8)
-
 	cycles := uint64(3)
+
+	slog.Debug("Decode JR n8", "n8", n8)
 	return cycles
 }
 
@@ -584,9 +619,9 @@ func (c *CPU) jrCCN8(opcode uint8) uint64 {
 	addr := uint16(int32(c.pc) + int32(n8))
 	c.pc = addr
 
-	slog.Debug("Decode JR cc n8", "cc", cc, "n8", n8)
-
 	cycles = 3
+
+	slog.Debug("Decode JR cc n8", "cc", cc, "n8", n8)
 	return cycles
 }
 
@@ -601,18 +636,18 @@ func (c *CPU) retCC(opcode uint8) uint64 {
 
 	c.pc = c.pop()
 
-	slog.Debug("Decode RET cc", "cc", cc)
-
 	cycles = 5
+
+	slog.Debug("Decode RET cc", "cc", cc)
 	return cycles
 }
 
 func (c *CPU) ret(opcode uint8) uint64 {
 	c.pc = c.pop()
 
-	slog.Debug("Decode RET")
-
 	cycles := uint64(4)
+
+	slog.Debug("Decode RET")
 	return cycles
 }
 
@@ -620,9 +655,9 @@ func (c *CPU) reti(opcode uint8) uint64 {
 	c.pc = c.pop()
 	c.ime = true
 
-	slog.Debug("Decode RETI", "ime", c.ime)
-
 	cycles := uint64(4)
+
+	slog.Debug("Decode RETI", "ime", c.ime)
 	return cycles
 }
 
@@ -631,8 +666,8 @@ func (c *CPU) rst(opcode uint8) uint64 {
 	c.push(c.pc)
 	c.pc = uint16(vec)
 
-	slog.Debug("Decode RST", "vec", vec)
-
 	cycles := uint64(4)
+
+	slog.Debug("Decode RST", "vec", vec)
 	return cycles
 }

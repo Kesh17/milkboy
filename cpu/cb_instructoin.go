@@ -15,19 +15,19 @@ func populateCBopcodeTable(c *CPU) {
 
 func setBITU8R(c *CPU) {
 	for i := 0x40; i <= 0x7F; i++ {
-		c.cbOPcodeTable[i] = c.bitU3R8
+		c.cbInstructionTable[i] = c.bitU3R8
 	}
 }
 
 func setRESU8R(c *CPU) {
 	for i := 0x80; i <= 0xBF; i++ {
-		c.cbOPcodeTable[i] = c.resU3R8
+		c.cbInstructionTable[i] = c.resU3R8
 	}
 }
 
 func setSETAR8(c *CPU) {
 	for i := 0xC0; i <= 0xFF; i++ {
-		c.cbOPcodeTable[i] = c.setU3R8
+		c.cbInstructionTable[i] = c.setU3R8
 	}
 }
 
