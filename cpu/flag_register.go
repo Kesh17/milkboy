@@ -33,3 +33,7 @@ func (f *FlagRegister) C() bool {
 func (f *FlagRegister) SetFlag(fb FlagBit) {
 	*f |= FlagRegister(fb)
 }
+
+func (f *FlagRegister) ClearFlag(fb FlagBit) {
+	*f &^= FlagRegister(fb)
+}
