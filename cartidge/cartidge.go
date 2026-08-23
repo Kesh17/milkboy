@@ -20,3 +20,7 @@ func New(path string) (*Cartidge, error) {
 func (c *Cartidge) Read(addr uint16) byte {
 	return c.ROM[addr]
 }
+
+func (c *Cartidge) Write(addr uint16, data byte) {
+	c.ROM[addr] = data
+}

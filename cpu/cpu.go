@@ -22,6 +22,11 @@ func New(bus bus.Addresable) *CPU {
 	return c
 }
 
+func (c *CPU) Cycle() {
+	opcode := c.Fetch()
+	c.DecodeExecute(opcode)
+}
+
 func (c *CPU) Fetch() uint8 {
 	debug_pc := c.PC
 	opcode := c.Bus.Read(c.PC)
@@ -31,4 +36,13 @@ func (c *CPU) Fetch() uint8 {
 		"opcode", fmt.Sprintf("%#X", opcode),
 	)
 	return opcode
+}
+
+func (c *CPU) DecodeExecute(opcode byte) {
+	if c.OpcodeTable[opcode] == nil {
+		slog.Warn("Not implemented yet", "opcode", fmt.Sprintf("%02X", opcode))
+		return
+	}
+	c.OpcodeTable[opcode](opcode)
+
 }

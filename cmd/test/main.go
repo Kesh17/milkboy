@@ -12,7 +12,7 @@ import (
 func main() {
 	// c, err := cartidge.New("roms/01-special.gb")
 	slog.SetLogLoggerLevel(slog.LevelDebug)
-	c, err := cartidge.New("roms/gb.gb")
+	c, err := cartidge.New("roms/ld_r_r.gb")
 	if err != nil {
 		slog.Error("cartidge load error", "error: ", err)
 	}
@@ -22,7 +22,7 @@ func main() {
 	gb := gameboy.New(cpu, bus)
 
 	for {
-		gb.Cycle()
+		gb.CPU.Cycle()
 		// time.Sleep(time.Millisecond)
 	}
 
