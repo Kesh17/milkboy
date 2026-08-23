@@ -70,9 +70,6 @@ func (c *CPU) populateTable() {
 	//ldh a c
 	c.opcodeTable[0xF2] = c.ldhAC
 
-	//ld sp [n16]
-	c.opcodeTable[0x31] = c.ldSPN16
-
 	//ldh [n16] sp
 	c.opcodeTable[0x08] = c.ldN16SP
 
@@ -159,13 +156,6 @@ func (c *CPU) ldhAC(opcode uint8) {
 	addr := uint16(0xFF00) | uint16(c.register.C)
 
 	c.register.A = c.bus.Read(addr)
-}
-
-func (c *CPU) ldSPN16(opcode uint8) {
-	lo := c.Fetch()
-	hi := c.Fetch()
-	n16 := uint16(hi)<<8 | uint16(lo)
-	c.sp = n16
 }
 
 func (c *CPU) ldN16SP(opcode uint8) {
