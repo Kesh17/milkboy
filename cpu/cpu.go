@@ -7,17 +7,17 @@ import (
 )
 
 type CPU struct {
-	Bus      bus.Addresable
-	Register Register
+	bus      bus.Addresable
+	register Register
 
-	PC uint16
-	SP uint16
+	pc uint16
+	sp uint16
 
-	OpcodeTable [256]Instruction
+	opcodeTable [256]Instruction
 }
 
 func New(bus bus.Addresable) *CPU {
-	c := &CPU{PC: 0x100, Bus: bus}
+	c := &CPU{pc: 0x100, bus: bus}
 	c.populateTable()
 	return c
 }
@@ -28,9 +28,9 @@ func (c *CPU) Cycle() {
 }
 
 func (c *CPU) Fetch() uint8 {
-	debug_pc := c.PC
-	opcode := c.Bus.Read(c.PC)
-	c.PC++
+	debug_pc := c.pc
+	opcode := c.bus.Read(c.pc)
+	c.pc++
 	slog.Debug("Fetch",
 		"PC", fmt.Sprintf("%#X", debug_pc),
 		"opcode", fmt.Sprintf("%#X", opcode),
@@ -39,10 +39,10 @@ func (c *CPU) Fetch() uint8 {
 }
 
 func (c *CPU) DecodeExecute(opcode byte) {
-	if c.OpcodeTable[opcode] == nil {
+	if c.opcodeTable[opcode] == nil {
 		slog.Warn("Not implemented yet", "opcode", fmt.Sprintf("%02X", opcode))
 		return
 	}
-	c.OpcodeTable[opcode](opcode)
+	c.opcodeTable[opcode](opcode)
 
 }

@@ -53,21 +53,21 @@ func (r R8) String() string {
 func (c *CPU) SetR8(r8 R8, data uint8) {
 	switch r8 {
 	case R8B:
-		c.Register.B = data
+		c.register.B = data
 	case R8C:
-		c.Register.C = data
+		c.register.C = data
 	case R8D:
-		c.Register.D = data
+		c.register.D = data
 	case R8E:
-		c.Register.E = data
+		c.register.E = data
 	case R8H:
-		c.Register.H = data
+		c.register.H = data
 	case R8L:
-		c.Register.L = data
+		c.register.L = data
 	case R8HL:
-		c.Bus.Write(c.Register.HL(), data)
+		c.bus.Write(c.register.HL(), data)
 	case R8A:
-		c.Register.A = data
+		c.register.A = data
 	}
 }
 
@@ -75,21 +75,21 @@ func (c *CPU) GetR8(r8 R8) uint8 {
 	var data uint8
 	switch r8 {
 	case R8B:
-		data = c.Register.B
+		data = c.register.B
 	case R8C:
-		data = c.Register.C
+		data = c.register.C
 	case R8D:
-		data = c.Register.D
+		data = c.register.D
 	case R8E:
-		data = c.Register.E
+		data = c.register.E
 	case R8H:
-		data = c.Register.H
+		data = c.register.H
 	case R8L:
-		data = c.Register.L
+		data = c.register.L
 	case R8HL:
-		data = c.Bus.Read(c.Register.HL())
+		data = c.bus.Read(c.register.HL())
 	case R8A:
-		data = c.Register.A
+		data = c.register.A
 	}
 
 	return data
@@ -122,16 +122,16 @@ func (r R16) String() string {
 func (c *CPU) SetR16(r16 R16, data uint16) {
 	switch r16 {
 	case R16BC:
-		c.Register.B = uint8(data >> 8)
-		c.Register.C = uint8(data)
+		c.register.B = uint8(data >> 8)
+		c.register.C = uint8(data)
 	case R16DE:
-		c.Register.D = uint8(data >> 8)
-		c.Register.E = uint8(data)
+		c.register.D = uint8(data >> 8)
+		c.register.E = uint8(data)
 	case R16HL:
-		c.Register.H = uint8(data >> 8)
-		c.Register.L = uint8(data)
+		c.register.H = uint8(data >> 8)
+		c.register.L = uint8(data)
 	case R16SP:
-		c.SP = data
+		c.sp = data
 	}
 }
 
@@ -139,13 +139,13 @@ func (c *CPU) GetR16(r16 R16) uint16 {
 	var data uint16
 	switch r16 {
 	case R16BC:
-		data = c.Register.BC()
+		data = c.register.BC()
 	case R16DE:
-		data = c.Register.DE()
+		data = c.register.DE()
 	case R16HL:
-		data = c.Register.HL()
+		data = c.register.HL()
 	case R16SP:
-		data = c.SP
+		data = c.sp
 	}
 	return data
 }
@@ -177,21 +177,21 @@ func (r R16Mem) String() string {
 func (c *CPU) SetR16Mem(r16m R16Mem, data uint8) {
 	switch r16m {
 	case R16M_BC:
-		c.Bus.Write(uint16(r16m), data)
+		c.bus.Write(uint16(r16m), data)
 	case R16M_DE:
-		c.Bus.Write(uint16(r16m), data)
+		c.bus.Write(uint16(r16m), data)
 	case R16M_HLI:
-		c.Bus.Write(c.Register.HL(), data)
-		hl := c.Register.HL()
+		c.bus.Write(c.register.HL(), data)
+		hl := c.register.HL()
 		hl++
-		c.Register.H = uint8(hl >> 8)
-		c.Register.H = uint8(hl)
+		c.register.H = uint8(hl >> 8)
+		c.register.H = uint8(hl)
 	case R16M_HLD:
-		c.Bus.Write(c.Register.HL(), data)
-		hl := c.Register.HL()
+		c.bus.Write(c.register.HL(), data)
+		hl := c.register.HL()
 		hl--
-		c.Register.H = uint8(hl >> 8)
-		c.Register.H = uint8(hl)
+		c.register.H = uint8(hl >> 8)
+		c.register.H = uint8(hl)
 	}
 }
 
@@ -199,21 +199,21 @@ func (c *CPU) GetR16Mem(r16 R16Mem) byte {
 	var data byte
 	switch r16 {
 	case R16M_BC:
-		data = c.Bus.Read(c.Register.BC())
+		data = c.bus.Read(c.register.BC())
 	case R16M_DE:
-		data = c.Bus.Read(c.Register.DE())
+		data = c.bus.Read(c.register.DE())
 	case R16M_HLI:
-		data = c.Bus.Read(c.Register.HL())
-		hl := c.Register.HL()
+		data = c.bus.Read(c.register.HL())
+		hl := c.register.HL()
 		hl--
-		c.Register.H = uint8(hl >> 8)
-		c.Register.H = uint8(hl)
+		c.register.H = uint8(hl >> 8)
+		c.register.H = uint8(hl)
 	case R16M_HLD:
-		data = c.Bus.Read(c.Register.HL())
-		hl := c.Register.HL()
+		data = c.bus.Read(c.register.HL())
+		hl := c.register.HL()
 		hl++
-		c.Register.H = uint8(hl >> 8)
-		c.Register.H = uint8(hl)
+		c.register.H = uint8(hl >> 8)
+		c.register.H = uint8(hl)
 	}
 	return data
 }

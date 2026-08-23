@@ -8,37 +8,37 @@ func setLDR8R8(c *CPU) {
 			//todo: halt
 			continue
 		}
-		c.OpcodeTable[i] = c.ldR8R8
+		c.opcodeTable[i] = c.ldR8R8
 	}
 }
 
 func setLDR8N8(c *CPU) {
 	for i := 0x06; i <= 0x3E; i += 0x08 {
-		c.OpcodeTable[i] = c.ldR8N8
+		c.opcodeTable[i] = c.ldR8N8
 	}
 }
 
 func setLDR16N16(c *CPU) {
 	for i := 0x01; i <= 0x31; i += 0x10 {
-		c.OpcodeTable[i] = c.ldR16N16
+		c.opcodeTable[i] = c.ldR16N16
 	}
 }
 
 func setLDR16memA(c *CPU) {
 	for i := 0x02; i <= 0x32; i += 0x10 {
-		c.OpcodeTable[i] = c.ldR16memA
+		c.opcodeTable[i] = c.ldR16memA
 	}
 }
 
 func setLDAR16mem(c *CPU) {
 	for i := 0x0A; i <= 0x3A; i += 0x10 {
-		c.OpcodeTable[i] = c.ldAR16mem
+		c.opcodeTable[i] = c.ldAR16mem
 	}
 }
 
 func (c *CPU) populateTable() {
 	//nop
-	c.OpcodeTable[0x0] = c.NOP
+	c.opcodeTable[0x0] = c.NOP
 
 	//ld r8 r8
 	setLDR8R8(c)
@@ -53,34 +53,34 @@ func (c *CPU) populateTable() {
 	setLDR16memA(c)
 
 	//ld [n16] a
-	c.OpcodeTable[0xEA] = c.ldN16A
+	c.opcodeTable[0xEA] = c.ldN16A
 
 	//ld a r16mem
 	setLDAR16mem(c)
 
 	//ld a [n16]
-	c.OpcodeTable[0xFA] = c.ldAN16
+	c.opcodeTable[0xFA] = c.ldAN16
 
 	//ldh [n16] a
-	c.OpcodeTable[0xE0] = c.ldhN16A
+	c.opcodeTable[0xE0] = c.ldhN16A
 
 	//ldh c a
-	c.OpcodeTable[0xE2] = c.ldhCA
+	c.opcodeTable[0xE2] = c.ldhCA
 
 	//ldh a c
-	c.OpcodeTable[0xF2] = c.ldhAC
+	c.opcodeTable[0xF2] = c.ldhAC
 
 	//ld sp [n16]
-	c.OpcodeTable[0x31] = c.ldSPN16
+	c.opcodeTable[0x31] = c.ldSPN16
 
 	//ldh [n16] sp
-	c.OpcodeTable[0x08] = c.ldN16SP
+	c.opcodeTable[0x08] = c.ldN16SP
 
 	//ld sp hl
-	c.OpcodeTable[0xF9] = c.ldSPHL
+	c.opcodeTable[0xF9] = c.ldSPHL
 
 	//ld hl sp+e8
-	c.OpcodeTable[0xF8] = c.ldHLSPe8
+	c.opcodeTable[0xF8] = c.ldHLSPe8
 
 }
 
@@ -112,7 +112,7 @@ func (c *CPU) ldR16N16(opcode uint8) {
 
 func (c *CPU) ldR16memA(opcode uint8) {
 	r16 := R16Mem((opcode & 0b00110000) >> 4)
-	c.SetR16Mem(r16, c.Register.A)
+	c.SetR16Mem(r16, c.register.A)
 }
 
 func (c *CPU) ldN16A(opcode uint8) {
@@ -120,14 +120,14 @@ func (c *CPU) ldN16A(opcode uint8) {
 	hi := c.Fetch()
 	n16 := uint16(hi)<<8 | uint16(lo)
 
-	c.Bus.Write(n16, c.Register.A)
+	c.bus.Write(n16, c.register.A)
 }
 
 func (c *CPU) ldAR16mem(opcode uint8) {
 	r16 := R16Mem((opcode & 0b00110000) >> 4)
 	data := c.GetR16Mem(r16)
 
-	c.Register.A = data
+	c.register.A = data
 }
 
 func (c *CPU) ldAN16(opcode uint8) {
@@ -135,7 +135,7 @@ func (c *CPU) ldAN16(opcode uint8) {
 	hi := c.Fetch()
 	n16 := uint16(hi)<<8 | uint16(lo)
 
-	c.Register.A = c.Bus.Read(n16)
+	c.register.A = c.bus.Read(n16)
 
 }
 
@@ -144,28 +144,28 @@ func (c *CPU) ldhN16A(opcode uint8) {
 	hi := uint16(0xFF00)
 	n16 := hi | lo
 
-	c.Bus.Write(n16, c.Register.A)
+	c.bus.Write(n16, c.register.A)
 
 }
 
 func (c *CPU) ldhCA(opcode uint8) {
-	addr := uint16(0xFF00) | uint16(c.Register.C)
+	addr := uint16(0xFF00) | uint16(c.register.C)
 
-	c.Bus.Write(addr, c.Register.A)
+	c.bus.Write(addr, c.register.A)
 
 }
 
 func (c *CPU) ldhAC(opcode uint8) {
-	addr := uint16(0xFF00) | uint16(c.Register.C)
+	addr := uint16(0xFF00) | uint16(c.register.C)
 
-	c.Register.A = c.Bus.Read(addr)
+	c.register.A = c.bus.Read(addr)
 }
 
 func (c *CPU) ldSPN16(opcode uint8) {
 	lo := c.Fetch()
 	hi := c.Fetch()
 	n16 := uint16(hi)<<8 | uint16(lo)
-	c.SP = n16
+	c.sp = n16
 }
 
 func (c *CPU) ldN16SP(opcode uint8) {
@@ -173,34 +173,34 @@ func (c *CPU) ldN16SP(opcode uint8) {
 	hi := c.Fetch()
 	n16 := uint16(hi)<<8 | uint16(lo)
 
-	low := c.SP & 0xFF
-	high := c.SP >> 8
-	c.Bus.Write(n16, byte(low))
-	c.Bus.Write(n16+1, byte(high))
+	low := c.sp & 0xFF
+	high := c.sp >> 8
+	c.bus.Write(n16, byte(low))
+	c.bus.Write(n16+1, byte(high))
 
 }
 
 func (c *CPU) ldHLSPe8(opcode uint8) {
 	e8 := int8(c.Fetch())
-	sp := c.SP
+	sp := c.sp
 
 	result := uint16(int32(sp) + int32(e8))
 
 	halfCarry := ((sp & 0x0F) + (uint16(uint8(e8)) & 0x0F)) > 0x0F
 	carry := ((sp & 0xFF) + uint16(uint8(e8))) > 0xFF
 
-	c.Register.H = uint8(result >> 8)
-	c.Register.L = uint8(result)
+	c.register.H = uint8(result >> 8)
+	c.register.L = uint8(result)
 
-	c.Register.F = 0
+	c.register.F = 0
 	if halfCarry {
-		c.Register.F.SetFlag(H)
+		c.register.F.SetFlag(H)
 	}
 	if carry {
-		c.Register.F.SetFlag(C)
+		c.register.F.SetFlag(C)
 	}
 }
 
 func (c *CPU) ldSPHL(opcode uint8) {
-	c.PC = c.Register.HL()
+	c.pc = c.register.HL()
 }
