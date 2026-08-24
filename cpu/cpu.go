@@ -27,11 +27,6 @@ func New(bus bus.Addresable) *CPU {
 
 func (c *CPU) Cycle() {
 	opcode := c.Fetch()
-	if opcode == 0xCB {
-		opcode = c.Fetch()
-		c.DecodeExecute(opcode)
-		return
-	}
 	c.DecodeExecute(opcode)
 }
 
@@ -55,6 +50,14 @@ func (c *CPU) Fetch16() uint16 {
 }
 
 func (c *CPU) DecodeExecute(opcode byte) uint64 {
+	if opcode == 0xCB {
+		opcode = c.Fetch()
+		if c.cbInstructionTable[opcode] == nil {
+			slog.Warn("Not implemented yet cb instruction", "opcode", fmt.Sprintf("%02X", opcode))
+			return 0
+		}
+		return c.cbInstructionTable[opcode](opcode)
+	}
 	if c.instructionTable[opcode] == nil {
 		slog.Warn("Not implemented yet", "opcode", fmt.Sprintf("%02X", opcode))
 		return 0

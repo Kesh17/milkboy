@@ -147,6 +147,18 @@ func setINCR16(c *CPU) {
 	}
 }
 
+func setPUSHR16Stk(c *CPU) {
+	for i := 0xC5; i <= 0xF5; i += 0x10 {
+		c.instructionTable[i] = c.pushR16Stk
+	}
+}
+
+func setPOPR16Stk(c *CPU) {
+	for i := 0xC1; i <= 0xF1; i += 0x10 {
+		c.instructionTable[i] = c.popR16Stk
+	}
+}
+
 func (c *CPU) populateTable() {
 	//nop
 	c.instructionTable[0x0] = c.NOP
@@ -297,6 +309,15 @@ func (c *CPU) populateTable() {
 
 	//SCF
 	c.instructionTable[0x37] = c.scf
+
+	//ADD SP e8
+	c.instructionTable[0xE8] = c.addSPE8
+
+	//PUSH r16stk
+	setPUSHR16Stk(c)
+
+	//POP r16stk
+	setPOPR16Stk(c)
 }
 
 func (c *CPU) NOP(opcode uint8) uint64 {
@@ -1092,5 +1113,57 @@ func (c *CPU) scf(opcode uint8) uint64 {
 
 	cycles := uint64(1)
 	slog.Debug("Decode SCF", "opcode", opcode)
+	return cycles
+}
+
+func (c *CPU) addSPE8(opcode uint8) uint64 {
+	e8 := c.Fetch()
+	sp := c.sp
+	offset := int8(e8)
+	result := uint16(int32(sp) + int32(offset))
+
+	c.register.F.ClearFlag(Z)
+	c.register.F.ClearFlag(N)
+	c.register.F.setFlagIf(H, (sp&0x0F)+(uint16(e8)&0x0F) > 0x0F)
+	c.register.F.setFlagIf(C, (sp&0xFF)+(uint16(e8)&0xFF) > 0xFF)
+
+	c.sp = result
+
+	cycles := uint64(1)
+	slog.Debug("Decode ADD SP e8", "e8", e8)
+	return cycles
+}
+
+func (c *CPU) popR16Stk(opcode uint8) uint64 {
+	r16stk := R16Stk((opcode >> 4) & 0x03)
+
+	sp := c.sp
+	lo := c.bus.Read(sp)
+	hi := c.bus.Read(sp + 1)
+	c.sp = sp + 2
+
+	value := (uint16(hi) << 8) | uint16(lo)
+	c.setR16Stk(r16stk, value)
+
+	cycles := uint64(3)
+	slog.Debug("Decode POP r16stk", "r16stk", r16stk)
+	return cycles
+}
+
+func (c *CPU) pushR16Stk(opcode uint8) uint64 {
+	r16Stk := R16Stk((opcode >> 4) & 0x03)
+	value := c.GetR16Stk(r16Stk)
+
+	hi := byte(value >> 8)
+	lo := byte(value)
+
+	c.sp--
+	c.bus.Write(c.sp, hi)
+
+	c.sp--
+	c.bus.Write(c.sp, lo)
+
+	cycles := uint64(4)
+	slog.Debug("Decode PUSH r16stk", "r16stk", r16Stk)
 	return cycles
 }

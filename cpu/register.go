@@ -224,6 +224,67 @@ func (c *CPU) GetR16Mem(r16 R16Mem) byte {
 	return data
 }
 
+type R16Stk uint8
+
+const (
+	R16StkBC R16Stk = iota
+	R16StkDE
+	R16StkHL
+	R16StkAF
+)
+
+func (r R16Stk) String() string {
+	switch r {
+	case R16StkBC:
+		return "BC"
+	case R16StkDE:
+		return "DE"
+	case R16StkHL:
+		return "HL"
+	case R16StkAF:
+		return "AF"
+	default:
+		return "UNKNOWN"
+	}
+}
+
+func (c *CPU) setR16Stk(r R16Stk, value uint16) {
+	switch r {
+	case R16StkBC:
+		c.register.B = uint8(value >> 8)
+		c.register.C = uint8(value)
+	case R16StkDE:
+		c.register.D = uint8(value >> 8)
+		c.register.E = uint8(value)
+	case R16StkHL:
+		c.register.H = uint8(value >> 8)
+		c.register.L = uint8(value)
+	case R16StkAF:
+		c.register.A = uint8(value >> 8)
+		c.register.F = FlagRegister(value & 0xF0)
+	default:
+		slog.Warn("r16Stk should not be here")
+	}
+
+}
+
+func (c *CPU) GetR16Stk(r16stk R16Stk) uint16 {
+	var data uint16
+	switch r16stk {
+	case R16StkBC:
+		data = c.register.BC()
+	case R16StkDE:
+		data = c.register.DE()
+	case R16StkHL:
+		data = c.register.HL()
+	case R16StkAF:
+		data = c.register.AF() & 0xFFF0
+	default:
+		slog.Warn("r16Stk should not be here")
+	}
+	return data
+}
+
 func combineRegister(hi uint8, lo uint8) uint16 {
 	return uint16(hi)<<8 | uint16(lo)
 }
