@@ -292,6 +292,11 @@ func (c *CPU) populateTable() {
 	//INC R16
 	setINCR16(c)
 
+	//CCF
+	c.instructionTable[0x3F] = c.ccf
+
+	//SCF
+	c.instructionTable[0x37] = c.scf
 }
 
 func (c *CPU) NOP(opcode uint8) uint64 {
@@ -1067,5 +1072,25 @@ func (c *CPU) incR16(opcode uint8) uint64 {
 	cycles := uint64(2)
 
 	slog.Debug("Decode INC r16", "r16", r16)
+	return cycles
+}
+
+func (c *CPU) ccf(opcode uint8) uint64 {
+	c.register.F.ClearFlag(N)
+	c.register.F.ClearFlag(H)
+	c.register.F.setFlagIf(C, !c.register.F.C())
+
+	cycles := uint64(1)
+	slog.Debug("Decode CCF", "opcode", opcode)
+	return cycles
+}
+
+func (c *CPU) scf(opcode uint8) uint64 {
+	c.register.F.ClearFlag(N)
+	c.register.F.ClearFlag(H)
+	c.register.F.SetFlag(C)
+
+	cycles := uint64(1)
+	slog.Debug("Decode SCF", "opcode", opcode)
 	return cycles
 }
