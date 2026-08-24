@@ -20,6 +20,21 @@ const (
 	FBC
 )
 
+func (f FlagBit) String() string {
+	switch f {
+	case FBNZ:
+		return "FBNZ"
+	case FBZ:
+		return "FBZ"
+	case FBNC:
+		return "FBNC"
+	case FBC:
+		return "FBC"
+	default:
+		return "unknown"
+	}
+}
+
 func (f *FlagRegister) ConditionCode(fb FlagBit) bool {
 	res := false
 
@@ -65,4 +80,12 @@ func (f *FlagRegister) SetFlag(fb FlagBit) {
 
 func (f *FlagRegister) ClearFlag(fb FlagBit) {
 	*f &^= FlagRegister(fb)
+}
+
+func (f *FlagRegister) setFlagIf(flag FlagBit, cond bool) {
+	if cond {
+		f.SetFlag(flag)
+	} else {
+		f.ClearFlag(flag)
+	}
 }

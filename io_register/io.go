@@ -1,6 +1,9 @@
 package io_register
 
-import "log/slog"
+import (
+	"fmt"
+	"log/slog"
+)
 
 type IORegister struct {
 	serial Serial
@@ -22,6 +25,10 @@ func (ir *IORegister) Read(addr uint16) byte {
 			data = ir.serial.sb
 		case 0xFF02:
 			data = ir.serial.sc
+			if data&0x80 != 0 {
+				// serial transfer requested
+				fmt.Printf("%c", ir.serial.sb)
+			}
 		}
 	default:
 		slog.Warn("this IO Register is not defined so garbage read")

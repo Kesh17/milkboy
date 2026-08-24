@@ -1,5 +1,7 @@
 package cpu
 
+import "log/slog"
+
 type Register struct {
 	A uint8
 	F FlagRegister
@@ -192,6 +194,8 @@ func (c *CPU) SetR16Mem(r16m R16Mem, data uint8) {
 		hl--
 		c.register.H = uint8(hl >> 8)
 		c.register.L = uint8(hl)
+	default:
+		slog.Warn("r16Mem should not be here")
 	}
 }
 
@@ -207,13 +211,15 @@ func (c *CPU) GetR16Mem(r16 R16Mem) byte {
 		hl := c.register.HL()
 		hl++
 		c.register.H = uint8(hl >> 8)
-		c.register.H = uint8(hl)
+		c.register.L = uint8(hl)
 	case R16MemHLD:
 		data = c.bus.Read(c.register.HL())
 		hl := c.register.HL()
 		hl--
 		c.register.H = uint8(hl >> 8)
-		c.register.H = uint8(hl)
+		c.register.L = uint8(hl)
+	default:
+		slog.Warn("r16Mem should not be here")
 	}
 	return data
 }
