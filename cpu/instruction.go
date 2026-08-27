@@ -318,6 +318,18 @@ func (c *CPU) populateTable() {
 
 	//POP r16stk
 	setPOPR16Stk(c)
+
+	//RLA
+	c.instructionTable[0x17] = c.rla
+
+	//RLCA
+	c.instructionTable[0x07] = c.rlca
+
+	//RRA
+	c.instructionTable[0x1F] = c.rra
+
+	//RRCA
+	c.instructionTable[0x0F] = c.rrca
 }
 
 func (c *CPU) NOP(opcode uint8) uint64 {
@@ -1165,5 +1177,80 @@ func (c *CPU) pushR16Stk(opcode uint8) uint64 {
 
 	cycles := uint64(4)
 	slog.Debug("Decode PUSH r16stk", "r16stk", r16Stk)
+	return cycles
+}
+
+func (c *CPU) rla(opcode uint8) uint64 {
+	value := c.register.A
+	newCarry := value&0x80 != 0
+
+	var oldCarry uint8
+	if c.register.F.C() {
+		oldCarry = 1
+	}
+
+	c.register.A = (value << 1) | oldCarry
+
+	c.register.F.ClearFlag(Z)
+	c.register.F.ClearFlag(N)
+	c.register.F.ClearFlag(H)
+	c.register.F.setFlagIf(C, newCarry)
+
+	slog.Debug("Decode RLA", "A", c.register.A)
+	cycles := uint64(1)
+	return cycles
+}
+
+func (c *CPU) rlca(opcode uint8) uint64 {
+	value := c.register.A
+	newCarry := value&0x80 != 0
+
+	c.register.A = (value << 1) | (value >> 7)
+
+	c.register.F.ClearFlag(Z)
+	c.register.F.ClearFlag(N)
+	c.register.F.ClearFlag(H)
+	c.register.F.setFlagIf(C, newCarry)
+
+	slog.Debug("Decode RLCA", "A", c.register.A)
+	cycles := uint64(1)
+	return cycles
+}
+
+func (c *CPU) rra(opcode uint8) uint64 {
+	value := c.register.A
+	newCarry := value&0x01 != 0
+
+	var oldCarry uint8
+	if c.register.F.C() {
+		oldCarry = 1
+	}
+
+	c.register.A = (oldCarry << 7) | (value >> 1)
+
+	c.register.F.ClearFlag(Z)
+	c.register.F.ClearFlag(N)
+	c.register.F.ClearFlag(H)
+	c.register.F.setFlagIf(C, newCarry)
+
+	slog.Debug("Decode RRCA", "A", c.register.A)
+	cycles := uint64(1)
+	return cycles
+}
+
+func (c *CPU) rrca(opcode uint8) uint64 {
+	value := c.register.A
+	newCarry := value&0x01 != 0
+
+	c.register.A = (value >> 1) | (value << 7)
+
+	c.register.F.ClearFlag(Z)
+	c.register.F.ClearFlag(N)
+	c.register.F.ClearFlag(H)
+	c.register.F.setFlagIf(C, newCarry)
+
+	cycles := uint64(1)
+
+	slog.Debug("Decode RRC A", "A", c.register.A)
 	return cycles
 }
