@@ -1,25 +1,25 @@
-package cartidge
+package cartridge
 
 import (
 	"log/slog"
-	"milkboy/cartidge/mbc"
+	"milkboy/cartridge/mbc"
 	"os"
 	"strings"
 )
 
-type Cartidge struct {
+type Cartridge struct {
 	mbc.MBC
 	Title    string
 	filename string
 }
 
-func New(path string) (*Cartidge, error) {
+func New(path string) (*Cartridge, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return &Cartidge{}, err
+		return &Cartridge{}, err
 	}
 
-	c := &Cartidge{filename: path}
+	c := &Cartridge{filename: path}
 
 	switch data[0x0147] {
 	case 0x00:
@@ -33,7 +33,7 @@ func New(path string) (*Cartidge, error) {
 	return c, nil
 }
 
-func (c *Cartidge) headerChecksum() byte {
+func (c *Cartridge) headerChecksum() byte {
 	var checksum byte = 0
 	for address := uint16(0x0134); address <= 0x014C; address++ {
 		checksum += c.Read(address)
@@ -41,11 +41,11 @@ func (c *Cartidge) headerChecksum() byte {
 	return checksum
 }
 
-func (c *Cartidge) setHeaderChecksum() {
+func (c *Cartridge) setHeaderChecksum() {
 	c.Write(0x014D, c.headerChecksum())
 }
 
-func (c *Cartidge) setTitle() {
+func (c *Cartridge) setTitle() {
 	var title strings.Builder
 	for address := uint16(0x0134); address <= 0x0143; address++ {
 		byte := c.Read(address)

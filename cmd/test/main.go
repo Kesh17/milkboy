@@ -3,7 +3,7 @@ package main
 import (
 	"log/slog"
 	"milkboy/bus"
-	"milkboy/cartidge"
+	"milkboy/cartridge"
 	"milkboy/cpu"
 	"milkboy/gameboy"
 )
@@ -11,9 +11,9 @@ import (
 // only for texting purpose
 func main() {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
-	c, err := cartidge.New("roms/tetris.gb")
+	c, err := cartridge.New("roms/tetris.gb")
 	if err != nil {
-		slog.Error("cartidge load error", "error: ", err)
+		slog.Error("cartridge load error", "error: ", err)
 	}
 	bus := bus.New(c)
 	cpu := cpu.New(bus)
@@ -24,5 +24,4 @@ func main() {
 		gb.CPU.Cycle()
 		// time.Sleep(time.Millisecond)
 	}
-
 }
