@@ -124,7 +124,7 @@ func setSBCAR8(c *CPU) {
 }
 
 func setSUBAR8(c *CPU) {
-	for i := 0x90; i <= 0x97; i += 0x08 {
+	for i := 0x90; i <= 0x97; i++ {
 		c.instructionTable[i] = c.subAR8
 	}
 }
@@ -330,6 +330,12 @@ func (c *CPU) populateTable() {
 
 	//RRCA
 	c.instructionTable[0x0F] = c.rrca
+
+	//DAA
+	c.instructionTable[0x27] = c.daa
+
+	//DI
+	c.instructionTable[0xF3] = c.di
 }
 
 func (c *CPU) NOP(opcode uint8) uint64 {
@@ -797,6 +803,7 @@ func (c *CPU) reti(opcode uint8) uint64 {
 
 	cycles := uint64(4)
 
+	slog.Debug("Interrupt not implemented")
 	slog.Debug("Decode RETI", "ime", c.ime)
 	return cycles
 }
@@ -1252,5 +1259,54 @@ func (c *CPU) rrca(opcode uint8) uint64 {
 	cycles := uint64(1)
 
 	slog.Debug("Decode RRC A", "A", c.register.A)
+	return cycles
+}
+
+func (c *CPU) di(opcode uint8) uint64 {
+	c.ime = false
+
+	cycles := uint64(1)
+
+	slog.Debug("Interrupt not implemented")
+	slog.Debug("Decode DI", "ime", c.ime)
+	return cycles
+}
+
+func (c *CPU) daa(opcode uint8) uint64 {
+	a := c.register.A
+	carry := c.register.F.C()
+	halfCarry := c.register.F.H()
+
+	if !c.register.F.N() {
+		adjustment := uint8(0)
+
+		if halfCarry || a&0x0F > 0x09 {
+			adjustment |= 0x06
+		}
+		if carry || a > 0x99 {
+			adjustment |= 0x60
+			carry = true
+		}
+		a += adjustment
+	} else {
+		adjustment := uint8(0)
+
+		if halfCarry {
+			adjustment |= 0x06
+		}
+		if carry {
+			adjustment |= 0x60
+		}
+		a -= adjustment
+	}
+
+	c.register.A = a
+
+	c.register.F.setFlagIf(Z, a == 0)
+	c.register.F.ClearFlag(H)
+	c.register.F.setFlagIf(C, carry)
+
+	slog.Debug("Decode DAA", "A", c.register.A)
+	cycles := uint64(1)
 	return cycles
 }

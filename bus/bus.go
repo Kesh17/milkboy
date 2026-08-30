@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"milkboy/cartidge"
-	io "milkboy/io_register"
+	"milkboy/interrupt"
+	"milkboy/io_register"
 )
 
 type Addresable interface {
@@ -13,25 +14,49 @@ type Addresable interface {
 }
 
 type Bus struct {
-	Cartidge *cartidge.Cartidge
-	io       io.IORegister
-	wram     [0x2000]byte
+	cartidge  *cartidge.Cartidge
+	vram      [8 * 1024]byte
+	io        io_register.IORegister
+	wram      [8 * 1024]byte //todo: switchable banks for cgb mode
+	hram      [127]byte
+	interrupt *interrupt.Interrupt
 }
 
 func New(cart *cartidge.Cartidge) *Bus {
-	return &Bus{Cartidge: cart}
+	//only for now
+	i := &interrupt.Interrupt{}
+	return &Bus{cartidge: cart, interrupt: i}
 }
 
 func (b *Bus) Write(addr uint16, data byte) {
 	switch {
 	case addr <= 0x7FFF:
-		b.Cartidge.Write(addr, data)
-	case addr >= 0xC000 && addr <= 0xDFFF:
+		b.cartidge.Write(addr, data)
+
+	case addr <= 0x9FFF:
+		b.vram[addr-0x8000] = data
+
+	case addr <= 0xBFFF:
+		b.cartidge.WriteRam(addr, data)
+
+	case addr <= 0xDFFF:
 		b.wram[addr-0xC000] = data
-	case addr >= 0xE000 && addr <= 0xFDFF:
-		b.wram[addr-0xE000] = data
-	case addr >= 0xFF00 && addr <= 0xFF7F:
+
+	case addr <= 0xFDFF: //Echo ram
+
+	case addr <= 0xFE9F: //OAM
+
+	case addr <= 0xFEFF: //Not usable
+
+	case addr <= 0xFF7F:
 		b.io.Write(addr, data)
+
+	case addr <= 0xFFFE: //HRAM not implemented dummy
+		b.hram[addr-0xFF80] = data
+
+	case addr == 0xFFFF:
+		b.interrupt.Write(data)
+
 	default:
 		slog.Warn("couldn't find location to write to", "addr", fmt.Sprintf("0x%04X", addr))
 	}
@@ -42,11 +67,32 @@ func (b *Bus) Read(addr uint16) byte {
 	var data uint8
 	switch {
 	case addr <= 0x7FFF:
-		data = b.Cartidge.Read(addr)
-	case addr >= 0xC000 && addr <= 0xDFFF:
+		return b.cartidge.Read(addr)
+
+	case addr <= 0x9FFF:
+		return b.vram[addr-0x8000]
+
+	case addr <= 0xBFFF:
+		return b.cartidge.Read(addr)
+
+	case addr <= 0xDFFF:
 		return b.wram[addr-0xC000]
-	case addr >= 0xFF00 && addr <= 0xFF7F:
-		data = b.io.Read(addr)
+
+	case addr <= 0xFDFF: //Echo ram
+
+	case addr <= 0xFE9F: //OAM
+
+	case addr <= 0xFEFF: //Not usable
+
+	case addr <= 0xFF7F:
+		return b.io.Read(addr)
+
+	case addr <= 0xFFFE: //HRAM not implemented dummy
+		return b.hram[addr-0xFF80]
+
+	case addr == 0xFFFF:
+		return b.interrupt.Read()
+
 	default:
 		slog.Warn("opcode will have garbage value")
 	}

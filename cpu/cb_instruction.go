@@ -2,7 +2,7 @@ package cpu
 
 import "log/slog"
 
-func populateCBopcodeTable(c *CPU) {
+func (c *CPU) populateCBopcodeTable() {
 	//BIT A, r8
 	setBITU8R(c)
 

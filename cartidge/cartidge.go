@@ -1,11 +1,16 @@
 package cartidge
 
 import (
+	"log/slog"
+	"milkboy/cartidge/mbc"
 	"os"
+	"strings"
 )
 
 type Cartidge struct {
-	ROM []byte
+	mbc.MBC
+	Title    string
+	filename string
 }
 
 func New(path string) (*Cartidge, error) {
@@ -14,13 +19,40 @@ func New(path string) (*Cartidge, error) {
 		return &Cartidge{}, err
 	}
 
-	return &Cartidge{ROM: data}, nil
+	c := &Cartidge{filename: path}
+
+	switch data[0x0147] {
+	case 0x00:
+		c.MBC = mbc.NewMBC0(data)
+	default:
+		slog.Warn("Unknown MBC type")
+	}
+
+	c.setHeaderChecksum()
+	c.setTitle()
+	return c, nil
 }
 
-func (c *Cartidge) Read(addr uint16) byte {
-	return c.ROM[addr]
+func (c *Cartidge) headerChecksum() byte {
+	var checksum byte = 0
+	for address := uint16(0x0134); address <= 0x014C; address++ {
+		checksum += c.Read(address)
+	}
+	return checksum
 }
 
-func (c *Cartidge) Write(addr uint16, data byte) {
-	c.ROM[addr] = data
+func (c *Cartidge) setHeaderChecksum() {
+	c.Write(0x014D, c.headerChecksum())
+}
+
+func (c *Cartidge) setTitle() {
+	var title strings.Builder
+	for address := uint16(0x0134); address <= 0x0143; address++ {
+		byte := c.Read(address)
+		if byte == 0x00 {
+			break
+		}
+		title.WriteByte(byte)
+	}
+	c.Title = title.String()
 }

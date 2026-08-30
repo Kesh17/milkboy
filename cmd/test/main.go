@@ -10,9 +10,8 @@ import (
 
 // only for texting purpose
 func main() {
-	// c, err := cartidge.New("roms/01-special.gb")
 	slog.SetLogLoggerLevel(slog.LevelDebug)
-	c, err := cartidge.New("roms/ldrr.gb")
+	c, err := cartidge.New("roms/tetris.gb")
 	if err != nil {
 		slog.Error("cartidge load error", "error: ", err)
 	}
