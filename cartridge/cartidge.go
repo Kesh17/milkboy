@@ -24,6 +24,10 @@ func New(path string) (*Cartridge, error) {
 	switch data[0x0147] {
 	case 0x00:
 		c.MBC = mbc.NewMBC0(data)
+	case 0x01, 0x02, 0x03:
+		noOfRomBanks := 2 * uint16(1<<data[0x0148])
+		ramSize := data[0x0149]
+		c.MBC = mbc.NewMBC1(data, noOfRomBanks, ramSize)
 	default:
 		slog.Warn("Unknown MBC type")
 	}

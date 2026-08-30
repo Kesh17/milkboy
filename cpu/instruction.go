@@ -835,7 +835,7 @@ func (c *CPU) adcAR8(opcode uint8) uint64 {
 	halfCarry := (a&0xF)+(value&0xF)+carryPlus > 0xF
 	carry := res > 0xFF
 
-	c.register.F.setFlagIf(Z, res == 0)
+	c.register.F.setFlagIf(Z, c.register.A == 0)
 	c.register.F.ClearFlag(N)
 	c.register.F.setFlagIf(H, halfCarry)
 	c.register.F.setFlagIf(C, carry)
@@ -866,7 +866,7 @@ func (c *CPU) adcAN8(opcode uint8) uint64 {
 	halfCarry := (a&0x0F)+(n8&0x0F)+carryPlus > 0x0F
 	carry := res > 0xFF
 
-	c.register.F.setFlagIf(Z, res == 0)
+	c.register.F.setFlagIf(Z, c.register.A == 0)
 	c.register.F.ClearFlag(N)
 	c.register.F.setFlagIf(H, halfCarry)
 	c.register.F.setFlagIf(C, carry)
@@ -999,6 +999,7 @@ func (c *CPU) sbcAR8(opcode uint8) uint64 {
 	}
 
 	result := a - value - carryFlag
+	c.register.A = result
 
 	c.register.F.setFlagIf(Z, result == 0)
 	c.register.F.SetFlag(N)
@@ -1024,6 +1025,7 @@ func (c *CPU) sbcAN8(opcode uint8) uint64 {
 	}
 
 	result := a - n8 - carryFlag
+	c.register.A = result
 
 	c.register.F.setFlagIf(Z, result == 0)
 	c.register.F.SetFlag(N)
