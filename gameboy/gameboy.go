@@ -3,13 +3,24 @@ package gameboy
 import (
 	"milkboy/bus"
 	"milkboy/cpu"
+	"milkboy/timer"
 )
 
 type GameBoy struct {
-	CPU *cpu.CPU
-	Bus *bus.Bus
+	cpu   *cpu.CPU
+	bus   *bus.Bus
+	timer *timer.Timer
 }
 
-func New(cpu *cpu.CPU, bus *bus.Bus) *GameBoy {
-	return &GameBoy{CPU: cpu, Bus: bus}
+func New(cpu *cpu.CPU, bus *bus.Bus, timer *timer.Timer) *GameBoy {
+	return &GameBoy{cpu: cpu, bus: bus, timer: timer}
+}
+
+func (gb *GameBoy) Run() {
+	for {
+		cycles := gb.cpu.Cycle() * 4
+		for range cycles {
+			gb.timer.Cycle()
+		}
+	}
 }

@@ -6,6 +6,8 @@ import (
 	"milkboy/cartridge"
 	"milkboy/cpu"
 	"milkboy/gameboy"
+	"milkboy/interrupt"
+	"milkboy/timer"
 )
 
 // only for texting purpose
@@ -15,13 +17,13 @@ func main() {
 	if err != nil {
 		slog.Error("cartridge load error", "error: ", err)
 	}
-	bus := bus.New(c)
-	cpu := cpu.New(bus)
 
-	gb := gameboy.New(cpu, bus)
+	interrupt := &interrupt.Interrupt{}
+	timer := timer.New(interrupt)
+	bus := bus.New(c, interrupt, timer)
+	cpu := cpu.New(bus, interrupt)
 
-	for {
-		gb.CPU.Cycle()
-		// time.Sleep(time.Millisecond)
-	}
+	gb := gameboy.New(cpu, bus, timer)
+
+	gb.Run()
 }

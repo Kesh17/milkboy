@@ -111,7 +111,7 @@ func setDECR8(c *CPU) {
 	}
 }
 
-func setINCAR8(c *CPU) {
+func setINCR8(c *CPU) {
 	for i := 0x04; i <= 0x3c; i += 0x08 {
 		c.instructionTable[i] = c.incR8
 	}
@@ -281,7 +281,7 @@ func (c *CPU) populateTable() {
 	setDECR8(c)
 
 	//INC r8
-	setINCAR8(c)
+	setINCR8(c)
 
 	//SBC A R8
 	setSBCAR8(c)
@@ -336,6 +336,12 @@ func (c *CPU) populateTable() {
 
 	//DI
 	c.instructionTable[0xF3] = c.di
+
+	//EI
+	c.instructionTable[0xFB] = c.ei
+
+	//HALT
+	c.instructionTable[0x76] = c.halt
 }
 
 func (c *CPU) NOP(opcode uint8) uint64 {
@@ -799,12 +805,12 @@ func (c *CPU) ret(opcode uint8) uint64 {
 
 func (c *CPU) reti(opcode uint8) uint64 {
 	c.pc = c.pop()
-	c.ime = true
+	c.interrupt.IME = true
 
 	cycles := uint64(4)
 
 	slog.Debug("Interrupt not implemented")
-	slog.Debug("Decode RETI", "ime", c.ime)
+	slog.Debug("Decode RETI", "ime", c.interrupt.IME)
 	return cycles
 }
 
@@ -1265,12 +1271,12 @@ func (c *CPU) rrca(opcode uint8) uint64 {
 }
 
 func (c *CPU) di(opcode uint8) uint64 {
-	c.ime = false
+	c.interrupt.IME = false
 
 	cycles := uint64(1)
 
 	slog.Debug("Interrupt not implemented")
-	slog.Debug("Decode DI", "ime", c.ime)
+	slog.Debug("Decode DI", "ime", c.interrupt.IME)
 	return cycles
 }
 
@@ -1310,5 +1316,30 @@ func (c *CPU) daa(opcode uint8) uint64 {
 
 	slog.Debug("Decode DAA", "A", c.register.A)
 	cycles := uint64(1)
+	return cycles
+}
+
+func (c *CPU) ei(_ uint8) uint64 {
+	c.pending = true
+
+	cycles := uint64(1)
+
+	slog.Debug("Interrupt not implemented")
+	slog.Debug("Decode EI", "ime", c.interrupt.IME)
+	return cycles
+}
+
+func (c *CPU) halt(_ uint8) uint64 {
+	switch {
+	case c.interrupt.IME:
+		c.halted = true
+	case c.interrupt.IME == false && !c.interrupt.IsPending():
+		c.halted = true
+	case c.interrupt.IME == false && c.interrupt.IsPending():
+		c.haltBug = true
+	}
+
+	cycles := uint64(1)
+	slog.Debug("Decode HALT", "halted", c.halted)
 	return cycles
 }
